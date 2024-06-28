@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include "schema_generated.h"
+// #include "schema_generated.h"
 
 #define PORT 8080
 
@@ -31,15 +31,17 @@ int main() {
         return -1;
     }
 
-    // Сериализация данных
-    flatbuffers::FlatBufferBuilder builder(1024);
-    auto text = builder.CreateString("Hello, World!");
-    auto message = example::CreateMessage(builder, 1, text);
-    builder.Finish(message);
+    // // Сериализация текстового сообщения
+    // flatbuffers::FlatBufferBuilder builder(1024);
+    // auto text = builder.CreateString("Hello, World!");
+    // auto text_message = example::CreateTextMessage(builder, text);
+    // auto message_content = example::CreateMessageContent(builder, example::MessageContent::TextMessage, text_message.Union());
+    // auto message = example::CreateMessage(builder, 1, message_content);
+    // builder.Finish(message);
 
-    // Отправка данных
-    send(sock, builder.GetBufferPointer(), builder.GetSize(), 0);
-    std::cout << "Message sent" << std::endl;
+    // // Отправка данных
+    // send(sock, builder.GetBufferPointer(), builder.GetSize(), 0);
+    // std::cout << "Text Message sent" << std::endl;
 
     close(sock);
     return 0;

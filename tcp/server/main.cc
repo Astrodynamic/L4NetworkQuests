@@ -2,7 +2,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include "schema_generated.h"
+// #include "schema_generated.h"
 
 #define PORT 8080
 
@@ -46,11 +46,18 @@ int main() {
 
     // Получение данных
     char buffer[1024] = {0};
-    int valread = read(new_socket, buffer, 1024);
+    // int valread = read(new_socket, buffer, 1024);
 
-    // Десериализация данных
-    auto message = example::GetMessage(buffer);
-    std::cout << "Received message: " << message->text()->c_str() << std::endl;
+    // // Десериализация данных
+    // auto message = example::GetMessage(buffer);
+    // if (message->content_type() == example::MessageContent::TextMessage) {
+    //     auto text_message = message->content_as_TextMessage();
+    //     std::cout << "Received Text Message: " << text_message->text()->c_str() << std::endl;
+    // } else if (message->content_type() == example::MessageContent::ImageMessage) {
+    //     auto image_message = message->content_as_ImageMessage();
+    //     std::cout << "Received Image Message: " << image_message->url()->c_str() << " (" 
+    //               << image_message->width() << "x" << image_message->height() << ")" << std::endl;
+    // }
 
     close(new_socket);
     close(server_fd);

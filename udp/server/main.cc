@@ -2,7 +2,8 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-#include "schema_generated.h"
+#include <cstring>
+// #include "schema_generated.h"
 
 #define PORT 8080
 
@@ -17,8 +18,8 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    memset(&servaddr, 0, sizeof(servaddr));
-    memset(&cliaddr, 0, sizeof(cliaddr));
+    std::memset(&servaddr, 0, sizeof(servaddr));
+    std::memset(&cliaddr, 0, sizeof(cliaddr));
 
     // Привязка сокета к порту
     servaddr.sin_family = AF_INET;
@@ -31,12 +32,12 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    socklen_t len = sizeof(cliaddr);
-    int n = recvfrom(sockfd, buffer, 1024, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
+    // socklen_t len = sizeof(cliaddr);
+    // int n = recvfrom(sockfd, buffer, 1024, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
 
-    // Десериализация данных
-    auto message = example::GetMessage(buffer);
-    std::cout << "Received message: " << message->text()->c_str() << std::endl;
+    // // Десериализация данных
+    // auto message = example::GetMessage(buffer);
+    // std::cout << "Received message: " << message->text()->c_str() << std::endl;
 
     close(sockfd);
     return 0;

@@ -1,0 +1,52 @@
+namespace robot.command;
+
+struct Vector3D {
+  x: double;
+  y: double;
+  z: double;
+}
+
+enum MoveType : byte {
+  MOVE_L = 0,
+  MOVE_G = 1
+}
+
+struct C_Space {
+  position: Vector3D;
+  orientation: Vector3D;
+}
+
+struct J_Space {
+  j0: double;
+  j1: double;
+  j2: double;
+  j3: double;
+  j4: double;
+  j5: double;
+}
+
+union MoveData {
+  C_Space,
+  J_Space
+}
+
+table MoveCommand {
+  type: MoveType;
+  move: MoveData;
+}
+
+table StopCommand {
+}
+
+union CommandData {
+  MoveCommand,
+  StopCommand
+}
+
+table Command {
+  id: int;
+  timestamp: ulong;
+  data: CommandData;
+}
+
+root_type Command;

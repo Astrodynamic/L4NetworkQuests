@@ -13,8 +13,7 @@
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
         "CMAKE_EXPORT_COMPILE_COMMANDS": "YES",
-        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-16",
-        "CMAKE_PREFIX_PATH": "$env{HOME}/.local"
+        "CMAKE_CXX_COMPILER": "/usr/bin/clang++-16"
       }
     },
     {
