@@ -43,8 +43,13 @@ union CommandData {
   StopCommand
 }
 
+enum CommandType : byte {
+  MoveCommand = 0,
+  StopCommand = 1
+}
+
 table Command {
-  id: int;
+  type: CommandType;
   timestamp: ulong;
   data: CommandData;
 }

@@ -2,9 +2,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-// #include "schema_generated.h"
+#include "commands_generated.h"
 
-#define PORT 8080
+#define PORT 8085
 
 int main() {
     int sock = 0;
@@ -32,16 +32,15 @@ int main() {
     }
 
     // // Сериализация текстового сообщения
-    // flatbuffers::FlatBufferBuilder builder(1024);
-    // auto text = builder.CreateString("Hello, World!");
-    // auto text_message = example::CreateTextMessage(builder, text);
-    // auto message_content = example::CreateMessageContent(builder, example::MessageContent::TextMessage, text_message.Union());
-    // auto message = example::CreateMessage(builder, 1, message_content);
-    // builder.Finish(message);
+    flatbuffers::FlatBufferBuilder builder(1024);
 
-    // // Отправка данных
-    // send(sock, builder.GetBufferPointer(), builder.GetSize(), 0);
-    // std::cout << "Text Message sent" << std::endl;
+    auto stop_command = robot::command::CreateStopCommand(builder);
+    auto stop_data = robot::command::CreateCommand(builder, robot::command::CommandType_StopCommand, 0UL, robot::command::CommandData_StopCommand, stop_command.Union());
+    builder.Finish(stop_data);
+
+    // Отправка данных
+    send(sock, builder.GetBufferPointer(), builder.GetSize(), 0);
+    std::cout << "Text Message sent" << std::endl;
 
     close(sock);
     return 0;

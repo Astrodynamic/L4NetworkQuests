@@ -25,9 +25,9 @@ foreach(FBS_FILE ${FBS_FILES})
     list(APPEND GENERATED_HEADERS ${GENERATED_HEADER})
 endforeach()
 
-add_custom_target(GenerateHeaders ALL DEPENDS ${GENERATED_HEADERS})
+add_custom_target(SchemaGenerate ALL DEPENDS ${GENERATED_HEADERS})
 
 add_library(${PROJECT_NAME} INTERFACE)
 target_include_directories(${PROJECT_NAME} INTERFACE ${GENERATED_DIR})
 target_link_libraries(${PROJECT_NAME} INTERFACE flatbuffers)
-add_dependencies(${PROJECT_NAME} GenerateHeaders)
+add_dependencies(${PROJECT_NAME} SchemaGenerate)

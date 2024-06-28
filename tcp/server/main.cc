@@ -2,9 +2,9 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
-// #include "schema_generated.h"
+#include "commands_generated.h"
 
-#define PORT 8080
+#define PORT 8085
 
 int main() {
     int server_fd, new_socket;
@@ -46,18 +46,21 @@ int main() {
 
     // Получение данных
     char buffer[1024] = {0};
-    // int valread = read(new_socket, buffer, 1024);
+    int valread = read(new_socket, buffer, 1024);
 
     // // Десериализация данных
-    // auto message = example::GetMessage(buffer);
-    // if (message->content_type() == example::MessageContent::TextMessage) {
-    //     auto text_message = message->content_as_TextMessage();
-    //     std::cout << "Received Text Message: " << text_message->text()->c_str() << std::endl;
-    // } else if (message->content_type() == example::MessageContent::ImageMessage) {
-    //     auto image_message = message->content_as_ImageMessage();
-    //     std::cout << "Received Image Message: " << image_message->url()->c_str() << " (" 
-    //               << image_message->width() << "x" << image_message->height() << ")" << std::endl;
-    // }
+    auto command = robot::command::GetCommand(buffer);
+    if (command->type() == robot::command::CommandType_MoveCommand) {
+        // auto move_command = command->data_as<robot::command::MoveCommand>();
+        // if (move_command->move_type() == robot::command::MoveType_MOVE_L) {
+        //     std::cout << "Received Move Command: " << move_command->move_type() << std::endl;
+        // } else if (move_command->move_type() == robot::command::MoveType_MOVE_G) {
+        //     std::cout << "Received Move Command: " << move_command->move_type() << std::endl;
+        // }
+    } else if (command->type() == robot::command::CommandType_StopCommand) {
+        auto stop_command = command->data_as<robot::command::StopCommand>();
+        std::cout << "Received Stop Command: " << std::endl;
+    }
 
     close(new_socket);
     close(server_fd);
