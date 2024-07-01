@@ -3,9 +3,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-// #include "schema_generated.h"
+#include "rtd_generated.h"
 
-#define PORT 8080
+#define PORT 8083
 
 int main() {
     int sockfd;
@@ -23,15 +23,33 @@ int main() {
     servaddr.sin_port = htons(PORT);
     servaddr.sin_addr.s_addr = INADDR_ANY;
 
-    // // Сериализация данных
-    // flatbuffers::FlatBufferBuilder builder(1024);
-    // auto text = builder.CreateString("Hello, World!");
-    // auto message = example::CreateMessage(builder, 1, text);
-    // builder.Finish(message);
+    // Отправка сообщения серверу
+    const char* message = "Hello from client";
+    sendto(sockfd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
 
-    // // Отправка данных
-    // sendto(sockfd, builder.GetBufferPointer(), builder.GetSize(), MSG_CONFIRM, (const struct sockaddr *)&servaddr, sizeof(servaddr));
-    // std::cout << "Message sent" << std::endl;
+    char buffer[1024];
+    
+    // Ожидание данных от сервера
+    socklen_t len;
+    int n = recvfrom(sockfd, (char*)buffer, 1024, MSG_WAITALL, (struct sockaddr*)&servaddr, &len);
+    buffer[n] = '\0';
+
+    // Десериализация данных FlatBuffers
+    auto rtd = flatbuffers::GetRoot<robot::rtd::RTD>(buffer);
+
+    // Обработка и вывод полученных данных
+    std::cout << "Version: " << rtd->version() << std::endl;
+    std::cout << "Timestamp: " << rtd->timestamp() << std::endl;
+
+    auto motors = rtd->motors();
+    for (auto motor : *motors) {
+        std::cout << "Motor ID: " << motor->id()
+                  << ", Temperature: " << motor->temperature()
+                  << ", Angle: " << motor->angle()
+                  << ", Speed: " << motor->speed()
+                  << ", Torque: " << motor->torque()
+                  << ", Status: " << (motor->status() ? "On" : "Off") << std::endl;
+    }
 
     close(sockfd);
     return 0;

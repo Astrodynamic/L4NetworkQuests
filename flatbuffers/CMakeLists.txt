@@ -9,6 +9,7 @@ file(MAKE_DIRECTORY ${GENERATED_DIR})
 
 set(FBS_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/robot/commands.fbs
+    ${CMAKE_CURRENT_SOURCE_DIR}/robot/rtd.fbs
 )
 
 foreach(FBS_FILE ${FBS_FILES})
