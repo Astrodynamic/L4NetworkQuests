@@ -34,9 +34,28 @@ int main() {
     // // Сериализация текстового сообщения
     flatbuffers::FlatBufferBuilder builder(1024);
 
-    auto stop_command = robot::command::CreateStopCommand(builder);
-    auto stop_data = robot::command::CreateCommand(builder, robot::command::CommandType_StopCommand, 0UL, robot::command::CommandData_StopCommand, stop_command.Union());
-    builder.Finish(stop_data);
+    // Пример создания MoveCommand с использованием C_Space
+    robot::command::Vector3D position(1.0, 2.0, 3.0);
+    robot::command::Vector3D orientation(0.0, 1.0, 0.0);
+    auto c_space = robot::command::C_Space(position, orientation);
+
+    // Упаковка структуры C_Space в FlatBuffers
+    auto c_space_offset = builder.CreateStruct(c_space);
+
+    robot::command::MoveCommandBuilder move_command_builder(builder);
+    move_command_builder.add_move_type(robot::command::MoveData_C_Space);
+    move_command_builder.add_move(c_space_offset.Union());
+    auto move_command = move_command_builder.Finish();
+
+    // Создание команды Command с использованием MoveCommand
+    robot::command::CommandBuilder command_builder(builder);
+    command_builder.add_timestamp(0UL);
+    command_builder.add_data_type(robot::command::CommandData_MoveCommand);
+    command_builder.add_data(move_command.Union());
+    auto command = command_builder.Finish();
+
+    // Завершение построения FlatBuffer
+    builder.Finish(command);
 
     // Отправка данных
     send(sock, builder.GetBufferPointer(), builder.GetSize(), 0);

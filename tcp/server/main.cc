@@ -49,17 +49,23 @@ int main() {
     int valread = read(new_socket, buffer, 1024);
 
     // // Десериализация данных
-    auto command = robot::command::GetCommand(buffer);
-    if (command->type() == robot::command::CommandType_MoveCommand) {
-        // auto move_command = command->data_as<robot::command::MoveCommand>();
-        // if (move_command->move_type() == robot::command::MoveType_MOVE_L) {
-        //     std::cout << "Received Move Command: " << move_command->move_type() << std::endl;
-        // } else if (move_command->move_type() == robot::command::MoveType_MOVE_G) {
-        //     std::cout << "Received Move Command: " << move_command->move_type() << std::endl;
-        // }
-    } else if (command->type() == robot::command::CommandType_StopCommand) {
-        auto stop_command = command->data_as<robot::command::StopCommand>();
+    auto command = flatbuffers::GetRoot<robot::command::Command>(buffer);
+    auto timestamp = command->timestamp();
+
+    if (command->data_type() == robot::command::CommandData_MoveCommand) {
+        std::cout << "Received Move Command: " << std::endl;
+
+        auto move_command = command->data_as<robot::command::MoveCommand>();
+        if (move_command->move_type() == robot::command::MoveData_C_Space) {
+            auto c_space = move_command->move_as<robot::command::C_Space>();
+            auto position = c_space->position();
+            auto orientation = c_space->orientation();
+            std::cout << "Position: " << position.x() << ", " << position.y() << ", " << position.z() << std::endl;
+            std::cout << "Orientation: " << orientation.x() << ", " << orientation.y() << ", " << orientation.z() << std::endl;
+        }
+    } else if (command->data_type() == robot::command::CommandData_StopCommand) {
         std::cout << "Received Stop Command: " << std::endl;
+        auto stop_command = command->data_as<robot::command::StopCommand>();
     }
 
     close(new_socket);
