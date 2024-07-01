@@ -45,7 +45,7 @@ int main() {
     }
 
     // Получение данных
-    char buffer[1024] = {0};
+    std::byte buffer[1024] = {};
     int valread = read(new_socket, buffer, 1024);
 
     // // Десериализация данных

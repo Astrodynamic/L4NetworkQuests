@@ -8,6 +8,7 @@ set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/include)
 file(MAKE_DIRECTORY ${GENERATED_DIR})
 
 set(FBS_FILES
+    ${CMAKE_CURRENT_SOURCE_DIR}/robot/common.fbs
     ${CMAKE_CURRENT_SOURCE_DIR}/robot/commands.fbs
     ${CMAKE_CURRENT_SOURCE_DIR}/robot/rtd.fbs
 )
@@ -18,7 +19,7 @@ foreach(FBS_FILE ${FBS_FILES})
 
     add_custom_command(
         OUTPUT ${GENERATED_HEADER}
-        COMMAND flatc --cpp -o ${GENERATED_DIR} ${FBS_FILE}
+        COMMAND flatc --cpp --gen-mutable -o ${GENERATED_DIR} ${FBS_FILE}
         DEPENDS ${FBS_FILE}
         COMMENT "Generating FlatBuffers header for ${FBS_FILE}"
     )

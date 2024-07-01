@@ -32,7 +32,7 @@ int main() {
     }
 
 
-    char buffer[1024];
+    std::byte buffer[1024];
     socklen_t len = sizeof(cliaddr);
     int n = recvfrom(sockfd, buffer, 1024, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
 

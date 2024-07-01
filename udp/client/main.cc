@@ -27,12 +27,11 @@ int main() {
     const char* message = "Hello from client";
     sendto(sockfd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
 
-    char buffer[1024];
+    std::byte buffer[1024];
     
     // Ожидание данных от сервера
     socklen_t len;
     int n = recvfrom(sockfd, (char*)buffer, 1024, MSG_WAITALL, (struct sockaddr*)&servaddr, &len);
-    buffer[n] = '\0';
 
     // Десериализация данных FlatBuffers
     auto rtd = flatbuffers::GetRoot<robot::rtd::RTD>(buffer);

@@ -31,12 +31,12 @@ int main() {
         return -1;
     }
 
-    // // Сериализация текстового сообщения
+    // Сериализация текстового сообщения
     flatbuffers::FlatBufferBuilder builder(1024);
 
     // Пример создания MoveCommand с использованием C_Space
-    robot::command::Vector3D position(1.0, 2.0, 3.0);
-    robot::command::Vector3D orientation(0.0, 1.0, 0.0);
+    robot::common::Vector3D position(1.0, 2.0, 3.0);
+    robot::common::Vector3D orientation(0.0, 1.0, 0.0);
     auto c_space = robot::command::C_Space(position, orientation);
 
     // Упаковка структуры C_Space в FlatBuffers
