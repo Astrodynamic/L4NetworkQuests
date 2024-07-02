@@ -21,7 +21,9 @@ int main() {
   struct sockaddr_in servaddr {
     .sin_family = AF_INET,
     .sin_port = htons(PORT),
-    .sin_addr.s_addr = INADDR_ANY
+    .sin_addr = {
+      .s_addr = INADDR_ANY
+    }
   };
 
   const char* message = "waiting for sychronization with server";
@@ -31,7 +33,7 @@ int main() {
     exit(EXIT_FAILURE);
   }
 
-  socklen_t len;
+  socklen_t len = sizeof(servaddr);
   std::array<std::byte, 1024> buffer;
   int n = recvfrom(sockfd, buffer.data(), buffer.size(), MSG_WAITALL, reinterpret_cast<struct sockaddr*>(&servaddr), &len);
   if (n < 0) {

@@ -21,7 +21,9 @@ int main() {
   struct sockaddr_in servaddr {
     .sin_family = AF_INET,
     .sin_port = htons(PORT),
-    .sin_addr.s_addr = INADDR_ANY
+    .sin_addr = {
+      .s_addr = INADDR_ANY
+    }
   };
 
   if (bind(sockfd, reinterpret_cast<const struct sockaddr *>(&servaddr), sizeof(servaddr)) < 0) {

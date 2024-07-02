@@ -26,8 +26,10 @@ int main() {
 
   struct sockaddr_in address {
     .sin_family = AF_INET,
-    .sin_addr.s_addr = INADDR_ANY,
-    .sin_port = htons(PORT)
+    .sin_port = htons(PORT),
+    .sin_addr = {
+      .s_addr = INADDR_ANY
+    }
   };
 
   if (bind(server_fd, reinterpret_cast<struct sockaddr *>(&address), sizeof(address)) < 0) {
