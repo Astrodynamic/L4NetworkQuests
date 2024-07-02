@@ -12,7 +12,7 @@
 constexpr uint16_t PORT = 8083;
 
 int main() {
-  int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  int sockfd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
   if (sockfd < 0) {
     std::cerr << "Socket creation failed: " << std::strerror(errno) << std::endl;
     exit(EXIT_FAILURE);

@@ -11,7 +11,7 @@
 constexpr uint16_t PORT = 8085;
 
 int main() {
-  int server_fd = socket(AF_INET, SOCK_STREAM, 0);
+  int server_fd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (server_fd == 0) {
     std::cerr << "Socket creation failed: " << std::strerror(errno) << std::endl;
     exit(EXIT_FAILURE);

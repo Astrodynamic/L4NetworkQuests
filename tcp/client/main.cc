@@ -11,7 +11,7 @@ constexpr std::string_view IP = "127.0.0.1";
 constexpr uint16_t PORT = 8085;
 
 int main() {
-  int sock = socket(AF_INET, SOCK_STREAM, 0);
+  int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
   if (sock < 0) {
     std::cerr << "Socket creation failed: " << std::strerror(errno) << std::endl;
     close(sock);
