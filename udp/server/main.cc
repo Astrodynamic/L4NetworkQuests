@@ -37,6 +37,11 @@ int main() {
   socklen_t len = sizeof(cliaddr);
   std::array<std::byte, 1024> buffer;
   int n = recvfrom(sockfd, buffer.data(), buffer.size(), MSG_WAITALL, reinterpret_cast<struct sockaddr *>(&cliaddr), &len);
+  if (n < 0) {
+    std::cerr << "Recvfrom failed: " << std::strerror(errno) << std::endl;
+    close(sockfd);
+    exit(EXIT_FAILURE);
+  }
 
   flatbuffers::FlatBufferBuilder builder(buffer.size());
 

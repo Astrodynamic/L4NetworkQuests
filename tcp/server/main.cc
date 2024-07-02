@@ -53,7 +53,13 @@ int main() {
   }
 
   std::array<std::byte, 1024> buffer{};
-  int valread = recv(new_socket, buffer.data(), buffer.size(), MSG_WAITALL);
+  int n = recv(new_socket, buffer.data(), buffer.size(), MSG_WAITALL);
+  if (n < 0) {
+    std::cerr << "Recv failed: " << std::strerror(errno) << std::endl;
+    close(new_socket);
+    close(server_fd);
+    exit(EXIT_FAILURE);
+  }
 
   auto command = flatbuffers::GetRoot<robot::command::Command>(buffer.data());
   auto timestamp = command->timestamp();
