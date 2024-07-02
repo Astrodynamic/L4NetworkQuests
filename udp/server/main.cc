@@ -1,70 +1,64 @@
-#include <iostream>
-#include <sys/socket.h>
 #include <netinet/in.h>
+#include <sys/socket.h>
 #include <unistd.h>
+
+#include <array>
+#include <cerrno>
 #include <cstring>
+#include <iostream>
+
 #include "rtd_generated.h"
 
-#define PORT 8083
+constexpr uint16_t PORT = 8083;
 
 int main() {
-    int sockfd;
-    struct sockaddr_in servaddr, cliaddr;
+  int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sockfd < 0) {
+    std::cerr << "Socket creation failed: " << std::strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-    // Создание сокета
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+  struct sockaddr_in servaddr {
+    .sin_family = AF_INET,
+    .sin_port = htons(PORT),
+    .sin_addr.s_addr = INADDR_ANY
+  };
 
-    std::memset(&servaddr, 0, sizeof(servaddr));
-    std::memset(&cliaddr, 0, sizeof(cliaddr));
-
-    // Привязка сокета к порту
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-    servaddr.sin_port = htons(PORT);
-
-    if (bind(sockfd, (const struct sockaddr *)&servaddr, sizeof(servaddr)) < 0) {
-        perror("bind failed");
-        close(sockfd);
-        exit(EXIT_FAILURE);
-    }
-
-
-    std::byte buffer[1024];
-    socklen_t len = sizeof(cliaddr);
-    int n = recvfrom(sockfd, buffer, 1024, MSG_WAITALL, (struct sockaddr *)&cliaddr, &len);
-
-    // Десериализация данных
-    flatbuffers::FlatBufferBuilder builder(1024);
-
-    // Создание данных для каждого мотора
-    std::vector<robot::rtd::MotorData> motor_data;
-    motor_data.push_back(robot::rtd::MotorData(1, 36.5f, 10.0f, 1500.0f, 50.0f, true));
-    motor_data.push_back(robot::rtd::MotorData(2, 37.0f, 15.0f, 1600.0f, 55.0f, true));
-    motor_data.push_back(robot::rtd::MotorData(3, 35.5f, 20.0f, 1400.0f, 45.0f, false));
-
-    // Сериализация массива данных моторов
-    auto motors = builder.CreateVectorOfStructs(motor_data);
-
-    // Временная метка и версия данных
-    auto version = 1;
-    auto timestamp = 1623847200;
-
-    // Создание RTD
-    robot::rtd::RTDBuilder rtd_builder(builder);
-    rtd_builder.add_version(version);
-    rtd_builder.add_timestamp(timestamp);
-    rtd_builder.add_motors(motors);
-    auto rtd = rtd_builder.Finish();
-
-    // Завершение построения FlatBuffer
-    builder.Finish(rtd);
-
-    // Отправка данных через UDP
-    sendto(sockfd, builder.GetBufferPointer(), builder.GetSize(), MSG_CONFIRM, (const struct sockaddr*)&cliaddr, sizeof(cliaddr));
-
+  if (bind(sockfd, reinterpret_cast<const struct sockaddr *>(&servaddr), sizeof(servaddr)) < 0) {
+    std::cerr << "Bind failed: " << std::strerror(errno) << std::endl;
     close(sockfd);
-    return 0;
+    exit(EXIT_FAILURE);
+  }
+
+  struct sockaddr_in cliaddr {};
+
+  socklen_t len = sizeof(cliaddr);
+  std::array<std::byte, 1024> buffer;
+  int n = recvfrom(sockfd, buffer.data(), buffer.size(), MSG_WAITALL, reinterpret_cast<struct sockaddr *>(&cliaddr), &len);
+
+  flatbuffers::FlatBufferBuilder builder(buffer.size());
+
+  std::vector<robot::rtd::MotorData> motor_data;
+  motor_data.push_back(robot::rtd::MotorData(1, 36.5f, 10.0f, 1500.0f, 50.0f, true));
+  motor_data.push_back(robot::rtd::MotorData(2, 37.0f, 15.0f, 1600.0f, 55.0f, true));
+  motor_data.push_back(robot::rtd::MotorData(3, 35.5f, 20.0f, 1400.0f, 45.0f, false));
+
+  auto motors = builder.CreateVectorOfStructs(motor_data);
+
+  auto version = 1;
+  auto timestamp = 1623847200;
+
+  robot::rtd::RTDBuilder rtd_builder(builder);
+  rtd_builder.add_version(version);
+  rtd_builder.add_timestamp(timestamp);
+  rtd_builder.add_motors(motors);
+  auto rtd = rtd_builder.Finish();
+
+  builder.Finish(rtd);
+
+  sendto(sockfd, builder.GetBufferPointer(), builder.GetSize(), MSG_CONFIRM, reinterpret_cast<const struct sockaddr *>(&cliaddr), sizeof(cliaddr));
+
+  close(sockfd);
+
+  return EXIT_SUCCESS;
 }

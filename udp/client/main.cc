@@ -1,55 +1,61 @@
-#include <iostream>
-#include <sys/socket.h>
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #include <unistd.h>
+
+#include <array>
+#include <cerrno>
 #include <cstring>
+#include <iostream>
+
 #include "rtd_generated.h"
 
-#define PORT 8083
+constexpr uint16_t PORT = 8083;
 
 int main() {
-    int sockfd;
-    struct sockaddr_in servaddr;
+  int sockfd = socket(AF_INET, SOCK_DGRAM, 0);
+  if (sockfd < 0) {
+    std::cerr << "Socket creation failed: " << std::strerror(errno) << std::endl;
+    exit(EXIT_FAILURE);
+  }
 
-    // Создание сокета
-    if ((sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-        perror("socket creation failed");
-        exit(EXIT_FAILURE);
-    }
+  struct sockaddr_in servaddr {
+    .sin_family = AF_INET,
+    .sin_port = htons(PORT),
+    .sin_addr.s_addr = INADDR_ANY
+  };
 
-    std::memset(&servaddr, 0, sizeof(servaddr));
-
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons(PORT);
-    servaddr.sin_addr.s_addr = INADDR_ANY;
-
-    // Отправка сообщения серверу
-    const char* message = "Hello from client";
-    sendto(sockfd, message, strlen(message), MSG_CONFIRM, (const struct sockaddr*)&servaddr, sizeof(servaddr));
-
-    std::byte buffer[1024];
-    
-    // Ожидание данных от сервера
-    socklen_t len;
-    int n = recvfrom(sockfd, (char*)buffer, 1024, MSG_WAITALL, (struct sockaddr*)&servaddr, &len);
-
-    // Десериализация данных FlatBuffers
-    auto rtd = flatbuffers::GetRoot<robot::rtd::RTD>(buffer);
-
-    // Обработка и вывод полученных данных
-    std::cout << "Version: " << rtd->version() << std::endl;
-    std::cout << "Timestamp: " << rtd->timestamp() << std::endl;
-
-    auto motors = rtd->motors();
-    for (auto motor : *motors) {
-        std::cout << "Motor ID: " << motor->id()
-                  << ", Temperature: " << motor->temperature()
-                  << ", Angle: " << motor->angle()
-                  << ", Speed: " << motor->speed()
-                  << ", Torque: " << motor->torque()
-                  << ", Status: " << (motor->status() ? "On" : "Off") << std::endl;
-    }
-
+  const char* message = "waiting for sychronization with server";
+  if (sendto(sockfd, message, std::strlen(message), MSG_CONFIRM, reinterpret_cast<const struct sockaddr*>(&servaddr), sizeof(servaddr)) < 0) {
+    std::cerr << "Sendto failed: " << std::strerror(errno) << std::endl;
     close(sockfd);
-    return 0;
+    exit(EXIT_FAILURE);
+  }
+
+  socklen_t len;
+  std::array<std::byte, 1024> buffer;
+  int n = recvfrom(sockfd, buffer.data(), buffer.size(), MSG_WAITALL, reinterpret_cast<struct sockaddr*>(&servaddr), &len);
+  if (n < 0) {
+    std::cerr << "Recvfrom failed: " << std::strerror(errno) << std::endl;
+    close(sockfd);
+    exit(EXIT_FAILURE);
+  }
+
+  auto rtd = flatbuffers::GetRoot<robot::rtd::RTD>(buffer.data());
+
+  std::cout << "Version: " << rtd->version() << std::endl;
+  std::cout << "Timestamp: " << rtd->timestamp() << std::endl;
+
+  auto motors = rtd->motors();
+  for (auto motor : *motors) {
+    std::cout << "Motor ID: " << motor->id()
+              << ", Temperature: " << motor->temperature()
+              << ", Angle: " << motor->angle()
+              << ", Speed: " << motor->speed()
+              << ", Torque: " << motor->torque()
+              << ", Status: " << (motor->status() ? "On" : "Off") << std::endl;
+  }
+
+  close(sockfd);
+
+  return EXIT_SUCCESS;
 }
